@@ -34,7 +34,7 @@ All the exciting stuff is happening in chef-metal-crowbar/cookbooks/app/recipes/
 CMCROWBAR_REPO=/VMs/repos/chef-metal-crowbar/
 cd ${CMCROWBAR_REPO}
 sudo gem build chef-metal-crowbar.gemspec 
-sudo gem install --ignore-dependencies --no-ri --no-rdoc chef-metal-crowbar-0.0.1.gem
+sudo gem install --ignore-dependencies --no-ri --no-rdoc chef-metal-crowbar-0.0.2.gem
 cd ${CMCROWBAR_REPO}/cookbooks/app/recipes/
 #chef-client -l debug -z crowbar_test.rb
 chef-client -z crowbar_test.rb
