@@ -13,46 +13,39 @@
 # limitations under the License.
 
 #require 'chef/mixin/shell_out'
-require 'chef_metal/driver'
-require 'chef_metal/machine/windows_machine'
-require 'chef_metal/machine/unix_machine'
-require 'chef_metal/machine_spec'
-require 'chef_metal/convergence_strategy/install_msi'
-require 'chef_metal/convergence_strategy/install_sh'
-require 'chef_metal/convergence_strategy/install_cached'
-require 'chef_metal/convergence_strategy/no_converge'
-require 'chef_metal/transport/ssh'
-require 'chef_metal_crowbar/version'
+require 'chef/provisioning/driver'
+require 'chef/provisioning/machine/unix_machine'
+require 'chef/provisioning/machine_spec'
+require 'chef/provisioning/convergence_strategy/install_cached'
+require 'chef/provisioning/transport/ssh'
+require 'chef/provisioning/crowbar_driver/version'
 require 'etc'
 require 'time'
-require 'cheffish/merged_config'
-require 'chef_metal_crowbar/recipe_dsl'
+#require 'cheffish/merged_config'
 require 'crowbar/core'
 
-module ChefMetalCrowbar
+class Chef
+module Provisioning
+module CrowbarDriver
 
-  class CrowbarDriver < ChefMetal::Driver
+  class Driver < Chef::Provisioning::Driver
 
-    #include Chef::Mixin::ShellOut
 
     ALLOCATE_DEPLOYMENT   = 'system'
     READY_DEPLOYMENT      = 'ready'
-    #TARGET_NODE_ROLE      = "crowbar-managed-node"
     TARGET_NODE_ROLE      = "crowbar-installed-node"
     API_BASE              = "/api/v2"
-
 
     def initialize(driver_url, config)
       super(driver_url, config)
       @crowbar = Crowbar.new
       #config[:private_key_paths] = [ "$HOME/.ssh/id_rsa" ]
-      config[:log_level] = :debug
-      # TODO: setup the deployment here?
+      #config[:log_level] = :debug
     end
     
     # Passed in a driver_url, and a config in the format of Driver.config.
     def self.from_url(driver_url, config)
-      CrowbarDriver.new(driver_url, config)
+      Driver.new(driver_url, config)
     end
 
     def self.canonicalize_url(driver_url, config)
@@ -64,6 +57,8 @@ module ChefMetalCrowbar
     # converge, execute, file and directory.
 
     def allocate_machine(action_handler, machine_spec, machine_options)
+
+      @crowbar.log_level(config[:log_level])
       
       if machine_spec.location
         if !@crowbar.node_exists?(machine_spec.location['server_id'])
@@ -89,7 +84,7 @@ module ChefMetalCrowbar
           debug "allocate server_id = #{server_id}"
           machine_spec.location = {
             'driver_url' => driver_url,
-            'driver_version' => ChefMetalCrowbar::VERSION,
+            'driver_version' => Chef::Provisioning::CrowbarDriver::VERSION,
             'server_id' => server_id,
             'node_role_id' => server["node_role_id"]
            # 'bootstrap_key' => sshkey
@@ -141,9 +136,9 @@ module ChefMetalCrowbar
       node_ipv4_admin_net_ip = node_admin_addresses['value'][0].split('/')[0]
       #node_ipv6_admin_net_ip = node_admin_addresses['value'][1]
       
-      transport = ChefMetal::Transport::SSH.new(node_ipv4_admin_net_ip, 'root', ssh_options, {}, config)
-      convergence_strategy = ChefMetal::ConvergenceStrategy::InstallCached.new(machine_options[:convergence_options], config)
-      ChefMetal::Machine::UnixMachine.new(machine_spec, transport, convergence_strategy)
+      transport = Chef::Provisioning::Transport::SSH.new(node_ipv4_admin_net_ip, 'root', ssh_options, {}, config)
+      convergence_strategy = Chef::Provisioning::ConvergenceStrategy::InstallCached.new(machine_options[:convergence_options], config)
+      Chef::Provisioning::Machine::UnixMachine.new(machine_spec, transport, convergence_strategy)
     end
 
     def create_ssh_transport(machine_spec)
@@ -158,13 +153,12 @@ module ChefMetalCrowbar
         :keys => [ '$HOME/.ssh/id_rsa' ],
         :keys_only => true
       }
-      ChefMetal::Transport::SSH.new(hostname, username, ssh_options, options, config) end
+      Chef::Provisioning::Transport::SSH.new(hostname, username, ssh_options, options, config) end
 
     def ensure_deployment(to_deployment)
       unless @crowbar.deployment_exists?(to_deployment)
           @crowbar.deployment_create(to_deployment)
-          debug("deployment create #{to_deployment}")
-          #action_handler.report_progress "Crowbar deployment '#{to_deployment}' does not exist... creating..." do
+          debug("Crowbar deployment '#{to_deployment}' does not exist... creating...")
       end
     end
 
@@ -180,7 +174,6 @@ module ChefMetalCrowbar
         pool.each do |node|
           if node['alias'] == name
             debug "Node #{name} already exists, skipping."
-            #tion_handler.report_progress "Node #{name} already exists, skipping."
             break
           end
           good_nodes << node
@@ -215,7 +208,7 @@ module ChefMetalCrowbar
     
     # debug messages
     def debug(msg)
-      Chef::Log.info msg
+      Chef::Log.debug msg
     end
 
     # Allocate many machines simultaneously
@@ -245,7 +238,7 @@ module ChefMetalCrowbar
             debug "allocate server_id = #{server_id}"
             machine_spec.location = {
               'driver_url' => driver_url,
-              'driver_version' => ChefMetalCrowbar::VERSION,
+              'driver_version' => Chef::Provisioning::CrowbarDriver::VERSION,
               'server_id' => server_id,
               'node_role_id' => server["node_role_id"]
             }
@@ -261,7 +254,6 @@ module ChefMetalCrowbar
     # follow getready process to allocate nodes
     def allocate_node(name, machine_options, action_handler)
 
-      puts("SINGULAR")
       role = TARGET_NODE_ROLE
       to_deployment = READY_DEPLOYMENT
       
@@ -270,7 +262,7 @@ module ChefMetalCrowbar
       @crowbar.propose_deployment(to_deployment)
 
       my_node = get_non_admin_nodes([name])[0]
-      puts(my_node)
+      #puts(my_node)
       set_node_and_bind_noderole(my_node,name,role,to_deployment,machine_options[:crowbar_options])
 
       @crowbar.commit_deployment(to_deployment)
@@ -283,4 +275,6 @@ module ChefMetalCrowbar
     private
 
   end # Class
+end
 end # Module
+end

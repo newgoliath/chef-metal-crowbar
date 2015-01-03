@@ -22,11 +22,23 @@ class Crowbar
 
   API_BASE = '/api/v2'
 
+
+
   def initialize(url = "http://127.0.0.1:3000", u = "crowbar", p = "crowbar")
       @url = url + API_BASE
       self.class.digest_auth u, p
       self.class.base_uri @url
       debug "initialize #{@url}"
+  end
+
+  @llevel = :info
+  def log_level(level)
+    @llevel = level
+    debug("incoming #{level} instance #{@llevel}")
+  end
+
+  def debug(msg)
+    puts "\nCROWBAR #{@llevel}: #{msg}" if @llevel == :debug
   end
 
 #  debug_output $stderr
@@ -92,7 +104,7 @@ class Crowbar
   end
 
 
-  def find_node_in_deployment(node,deploymen,attrs=[])
+  def find_node_in_deployment(node,deployment,attrs=[])
     res = self.class.get("/deployments/#{deployment}/nodes", :headers => {'x-return-attributes' => "#{attrs.to_json}" } )
     res.index{|e|e["name"] == node || e["id"] == node} 
   end
@@ -200,12 +212,9 @@ class Crowbar
     res['id']
   end
 
+
   private
 
-  # debug messages
-  def debug(msg)
-    puts "\nDEBUG: #{msg}"
-  end
 
 #  # connect to the Crowbar API
 #  # this currently AUTHS every call, we need to optimize that so that we can reuse the auth tokens
