@@ -1,0 +1,11 @@
+# Copyright 2015, Rob Hirschfeld
+# All Rights Reserved
+
+en:
+  barclamp_chef_integration:
+    node_roles:
+  common:
+    roles:
+      chef-ready: "Chef Ready"
+      chef-provisioning: "Chef Provisioning Prepared"
+    attribs:
