@@ -120,7 +120,7 @@ All the exciting stuff is happening in chef-provisioning-crowbar/cookbooks/app/r
 /$HOME/build_and_test_chef-provisioning-crowbar.sh
 
 ```bash
-# source the chef-dk env
+ source the chef-dk env
 . $HOME/.bash_profile
 CPC_REPO_PATH=<path to chef-provisioning-crowbar git repo>
 cd ${CPC_REPO_PATH}
@@ -134,3 +134,12 @@ cd ${CPC_REPO_PATH}/cookbooks/app/recipes/
 # or omit -z to use a chef server indicated elsewhere
 chef-client ./crowbar_test.rb
 ```
+## Chef Ready Barclamp
+
+This workload also installs a small Crowbar barclamp for Chef Integrations.
+
+At this time, the only purpose of the Chef Integration is
+1) provide the target "chef-ready" milestone so that roles can be added before the Chef Provisioning target that are unique to the Chef Provisioning driver
+2) to install a SSL Certificate in /etc/chef/trusted_certs so that the Chef Server (assumed to be the Crowbar installed Chef at 192.168.124.10 which is currently hard coded).
+
+To install the SSL Certificate, you must export the certificate manually and copy the file to `/tftpboot/files/chef/192.168.124.10.crt` and it will be automatically copied to the nodes during bring up.
