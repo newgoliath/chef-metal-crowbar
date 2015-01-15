@@ -33,7 +33,7 @@ module CrowbarDriver
 
     ALLOCATE_DEPLOYMENT   = 'system'
     READY_DEPLOYMENT      = 'ready'
-    TARGET_NODE_ROLE      = "crowbar-installed-node"
+    TARGET_NODE_ROLE      = "chef-ready"
     API_BASE              = "/api/v2"
 
     def initialize(driver_url, config)

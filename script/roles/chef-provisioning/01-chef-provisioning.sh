@@ -16,8 +16,10 @@
 # File Sources
 webserver=$(read_attribute "crowbar/provisioner/server/webserver")
 certs="/etc/chef/trusted_certs"
+server="192.168.124.10.crt"
 
 # copy file from webserver to node
-mkdir -r "$certs"
-curl -s -f -L -o "$certs" "$webserver/files/chef/192.168.124.10.crt"
+mkdir -p "$certs"
+curl -s -f -L -o "$certs/$server" "$webserver/files/chef/$server"
 
+exit 0

@@ -16,10 +16,10 @@
 require 'chef/provisioning'
 with_driver 'crowbar'
 
-with_chef_server 'https://192.168.124.10',
-                 :client_name => 'metal',
-                 :signing_key_filename => '/etc/chef/client.pem'
-
+with_chef_server 'https://192.168.124.10:443',
+                 :client_name => 'rack1',
+                 :signing_key_filename => '/home/rob/.chef/client.pem'
+                 
 # Crowbar these days is defaulting to installing Centos-7.0
 # on its slave nodes.
 #
